@@ -1,52 +1,64 @@
-const startBtn = document.getElementById("startBtn");
-const formSection = document.getElementById("formSection");
-const dateBtns = document.querySelectorAll(".dateBtn");
-const statusMsg = document.getElementById("statusMsg");
-const nomeInput = document.getElementById("nome");
+const startBtn = document.getElementById('startBtn');
+const formSection = document.getElementById('formSection');
+const nomeInput = document.getElementById('nome');
+const dateButtons = document.querySelectorAll('.dateBtn');
+const statusMsg = document.getElementById('statusMsg');
 
-const SUPABASE_URL = "https://qruetkcgtsmhzdadwrqk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFydWV0a2NndHNtaHpkYWR3cnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1NDQxODMsImV4cCI6MjA2MzEyMDE4M30.aIxUAR9BvBdkINJDOBpCvknBrAr3XrXnirh6Tzcm_oo";
-const TABLE = "inscricoes";
+const SHEETDB_URL = 'https://sheetdb.io/api/v1/do29db6uv8v3c';
 
-startBtn.addEventListener("click", () => {
-  formSection.classList.remove("hidden");
-  startBtn.style.display = "none";
+startBtn.addEventListener('click', () => {
+  formSection.classList.remove('hidden');
+  startBtn.style.display = 'none';
 });
 
-dateBtns.forEach((btn) => {
-  btn.addEventListener("click", async () => {
+dateButtons.forEach(button => {
+  button.addEventListener('click', () => {
     const nome = nomeInput.value.trim();
-    const data = btn.dataset.date;
+    const dia = button.getAttribute('data-date');
 
     if (!nome) {
-      statusMsg.innerText = "Por favor, digite seu nome.";
+      statusMsg.textContent = 'Por favor, digite seu nome completo.';
+      statusMsg.style.color = 'red';
       return;
     }
 
-    const exists = localStorage.getItem("inscrito");
+    statusMsg.textContent = 'Verificando inscrição...';
+    statusMsg.style.color = 'black';
 
-    if (exists) {
-      statusMsg.innerText = `Você já está inscrito na data ${exists}!`;
-      return;
-    }
-
-    // Envia para Supabase
-    const { data: result, error } = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        Prefer: "return=minimal"
-      },
-      body: JSON.stringify({ nome, data_inscricao: data })
-    });
-
-    if (!error) {
-      localStorage.setItem("inscrito", data);
-      statusMsg.innerText = "Inscrição confirmada!";
-    } else {
-      statusMsg.innerText = "Erro ao inscrever. Tente novamente.";
-    }
+    // Verifica se já está inscrito na mesma data
+    fetch(`${SHEETDB_URL}/search?dia=${dia}&nome=${encodeURIComponent(nome)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.length > 0) {
+          statusMsg.textContent = 'Você já se inscreveu para essa data.';
+          statusMsg.style.color = 'red';
+        } else {
+          // Envia inscrição
+          fetch(SHEETDB_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              data: [{ nome, dia }]
+            }),
+          })
+            .then(response => {
+              if (response.ok) {
+                statusMsg.textContent = `Inscrição realizada com sucesso para ${dia}!`;
+                statusMsg.style.color = 'green';
+                nomeInput.value = '';
+              } else {
+                throw new Error('Erro ao enviar inscrição.');
+              }
+            })
+            .catch(() => {
+              statusMsg.textContent = 'Erro ao enviar inscrição. Tente novamente.';
+              statusMsg.style.color = 'red';
+            });
+        }
+      })
+      .catch(() => {
+        statusMsg.textContent = 'Erro ao verificar inscrições. Tente novamente.';
+        statusMsg.style.color = 'red';
+      });
   });
 });
