@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inscrição - UNEMAT</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Inscrição</h1>
+    <button id="startBtn">Inscrever-se</button>
+
+    <div id="formSection" class="hidden">
+      <p><strong>Local:</strong> UNEMAT - Imperial, sala N7</p>
+      <p><strong>Horário:</strong> 17:45 - 21:00</p>
+      <input type="text" id="nome" placeholder="Digite seu nome completo" required />
+
+      <p><strong>Escolha a data:</strong></p>
+      <div class="buttons">
+        <button class="dateBtn" data-date="2025-05-21">21/05/2025</button>
+        <button class="dateBtn" data-date="2025-05-22">22/05/2025</button>
+        <button class="dateBtn" data-date="2025-05-23">23/05/2025</button>
+      </div>
+
+      <p id="statusMsg"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
